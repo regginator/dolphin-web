@@ -13,20 +13,22 @@
 #include "Common/MsgHandler.h"
 
 #ifdef _WIN32
-#include <windows.h>
-#include "Common/StringUtil.h"
+  #include <windows.h>
+  #include "Common/StringUtil.h"
 #else
-#include <pthread.h>
-#include <stdio.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#if defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__ || defined __NetBSD__
-#include <sys/sysctl.h>
-#elif defined __HAIKU__
-#include <OS.h>
-#else
-#include <sys/sysinfo.h>
-#endif
+  #include <pthread.h>
+  #include <stdio.h>
+  #include <sys/mman.h>
+  #include <sys/types.h>
+  #if defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__ || defined __NetBSD__
+    #include <sys/sysctl.h>
+  #elif defined __HAIKU__
+    #include <OS.h>
+  #elif defined EMSCRIPTEN
+    #include <emscripten/heap.h>
+  #else
+    #include <sys/sysinfo.h>
+  #endif
 #endif
 
 namespace Common
@@ -282,6 +284,8 @@ size_t MemPhysical()
   system_info sysinfo;
   get_system_info(&sysinfo);
   return static_cast<size_t>(sysinfo.max_pages * B_PAGE_SIZE);
+#elif defined EMSCRIPTEN
+  return emscripten_get_heap_max();
 #else
   struct sysinfo memInfo;
   sysinfo(&memInfo);
