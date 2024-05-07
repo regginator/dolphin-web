@@ -29,7 +29,7 @@ constexpr u32 m_os = OS_ALL | OS_WINDOWS;
 constexpr u32 m_os = OS_ALL | OS_ANDROID;
 #elif __APPLE__
 constexpr u32 m_os = OS_ALL | OS_OSX;
-#elif __linux__
+#elif __linux__ || EMSCRIPTEN
 constexpr u32 m_os = OS_ALL | OS_LINUX;
 #elif __FreeBSD__
 constexpr u32 m_os = OS_ALL | OS_FREEBSD;

@@ -164,6 +164,7 @@ if(EMSCRIPTEN)
 
   set(ENABLE_NOGUI ON)
   set(ENABLE_QT OFF)
+  set(ENABLE_CLI_TOOL OFF)
 
   set(USE_UPNP OFF)
   set(ENABLE_ALSA OFF)
@@ -730,9 +731,7 @@ if(NOT ANDROID)
   add_definitions(-D__LIBUSB__)
 endif()
 
-if(NOT EMSCRIPTEN)
-  dolphin_find_optional_system_library(SFML Externals/SFML 2.1 COMPONENTS network system)
-endif()
+dolphin_find_optional_system_library(SFML Externals/SFML 2.1 COMPONENTS network system)
 
 if(USE_UPNP)
   dolphin_find_optional_system_library(MINIUPNPC Externals/miniupnpc 1.6)
