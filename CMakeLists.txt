@@ -177,6 +177,16 @@ if(EMSCRIPTEN)
 
   set(ENABLE_ANALYTICS OFF)
   set(ENCODE_FRAMEDUMPS OFF) # FFmpeg
+
+  # Enable Emscripten Posix threads API and things for libusb for C/C++
+
+  # WTF? Why doesn't this work?
+  #target_compile_options(dolphin-emu PUBLIC "-pthread")
+  #target_link_options(dolphin-emu PUBLIC "-pthread --bind -s ASYNCIFY -s ALLOW_MEMORY_GROWTH")
+  
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread --bind -s ASYNCIFY -s ALLOW_MEMORY_GROWTH")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH
@@ -726,7 +736,28 @@ include_directories(Externals/soundtouch)
 
 dolphin_find_optional_system_library(CUBEB Externals/cubeb)
 
-if(NOT ANDROID)
+if(EMSCRIPTEN)
+  # Here's the deal. CMake has been a major PITA with libusb's `emscripten_webusb.cpp` and,
+  # I honestly have absolutely zero idea how to get it compiling w/ its use of couroutines
+  # or whatever. So, my current solution is just to hack together a fucking Bash script
+  # the user has to run to build libusb for `wasm32-emscripten` with its own configure.ac
+  # stuff, which somehow works. We're just going to link THAT directly here in CMake :)
+
+  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/Externals/libusb/emscripten-build)
+    message(FATAL_ERROR "`${CMAKE_SOURCE_DIR}/Externals/libusb/emscripten-build` not found, please run `WebUtils/build-libusb.sh` to build libusb externally")
+  endif()
+
+  message(STATUS "Linking externally-built libusb for Emscripten")
+
+  # FML
+  add_library(usb STATIC IMPORTED)
+  set_target_properties(usb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/Externals/libusb/emscripten-build/lib/libusb-1.0/libusb-1.0.a)
+  target_include_directories(usb INTERFACE ${CMAKE_SOURCE_DIR}/Externals/libusb/emscripten-build/include/libusb-1.0)
+
+  add_library(LibUSB::LibUSB ALIAS usb)
+
+  add_definitions(-D__LIBUSB__)
+elseif(NOT ANDROID)
   dolphin_find_optional_system_library(LibUSB Externals/libusb)
   add_definitions(-D__LIBUSB__)
 endif()

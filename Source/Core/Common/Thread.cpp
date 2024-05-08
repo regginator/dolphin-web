@@ -175,6 +175,8 @@ void SetCurrentThreadName(const char* name)
   pthread_setname_np(pthread_self(), "%s", const_cast<char*>(name));
 #elif defined __HAIKU__
   rename_thread(find_thread(nullptr), name);
+#elif EMSCRIPTEN
+  // pthread_setname_np doesn't work with Emscripten?
 #else
   // linux doesn't allow to set more than 16 bytes, including \0.
   pthread_setname_np(pthread_self(), std::string(name).substr(0, 15).c_str());
