@@ -749,12 +749,8 @@ if(EMSCRIPTEN)
 
   message(STATUS "Linking externally-built libusb for Emscripten")
 
-  # FML
-  add_library(usb STATIC IMPORTED)
-  set_target_properties(usb PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/Externals/libusb/emscripten-build/lib/libusb-1.0/libusb-1.0.a)
-  target_include_directories(usb INTERFACE ${CMAKE_SOURCE_DIR}/Externals/libusb/emscripten-build/include/libusb-1.0)
-
-  add_library(LibUSB::LibUSB ALIAS usb)
+  # TODO: Figure out how to LINK a `.a` library to an importable target, there doesn't seem
+  # to be any helpful documention for this that actually works :)
 
   add_definitions(-D__LIBUSB__)
 elseif(NOT ANDROID)

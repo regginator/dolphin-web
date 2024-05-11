@@ -75,6 +75,18 @@ function(dolphin_find_optional_system_library library bundled_path)
   endif()
 endfunction()
 
+function(dolphin_import_optional_library private_name library archive_path)
+  string(TOUPPER ${library} prefix)
+
+  add_library(${private_name} INTERFACE)
+  #set_target_properties(${private_name} PROPERTIES IMPORTED_LOCATION ${archive_path})
+  target_link_libraries(${private_name} INTERFACE ${archive_path})
+
+  add_library(${library} ALIAS ${private_name})
+
+  set(${prefix}_TYPE "Bundled" PARENT_SCOPE)
+endfunction()
+
 function(dolphin_find_optional_system_library_pkgconfig library search alias bundled_path)
   dolphin_optional_system_library(${library})
   string(TOUPPER ${library} upperlib)
