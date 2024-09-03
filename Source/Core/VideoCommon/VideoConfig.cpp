@@ -66,7 +66,7 @@ void VideoConfig::Refresh()
     CPUThreadConfigCallback::AddConfigChangedCallback([]() {
       auto& system = Core::System::GetInstance();
 
-      const bool lock_gpu_thread = Core::IsRunningAndStarted();
+      const bool lock_gpu_thread = Core::IsRunning(system);
       if (lock_gpu_thread)
         system.GetFifo().PauseAndLock(true, false);
 
@@ -171,6 +171,7 @@ void VideoConfig::Refresh()
   color_correction.fHDRPaperWhiteNits = Config::Get(Config::GFX_CC_HDR_PAPER_WHITE_NITS);
 
   stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
+  stereo_per_eye_resolution_full = Config::Get(Config::GFX_STEREO_PER_EYE_RESOLUTION_FULL);
   iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
   iStereoConvergencePercentage = Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
   bStereoSwapEyes = Config::Get(Config::GFX_STEREO_SWAP_EYES);

@@ -72,6 +72,8 @@ enum class GameQuirk
   // We don't implement all AX features yet.
   USES_UNIMPLEMENTED_AX_COMMAND,
   USES_AX_INITIAL_TIME_DELAY,
+  USES_AX_WIIMOTE_LOWPASS,
+  USES_AX_WIIMOTE_BIQUAD,
 
   // We don't implement XFMEM_CLIPDISABLE yet.
   SETS_XF_CLIPDISABLE_BIT_0,
@@ -133,6 +135,9 @@ public:
   // Generates a report for a special condition being hit by a game. This is automatically throttled
   // to once per game run.
   void ReportGameQuirk(GameQuirk quirk);
+
+  // Get the base builder for building a report
+  const Common::AnalyticsReportBuilder& BaseBuilder() const { return m_base_builder; }
 
   struct PerformanceSample
   {
