@@ -74,17 +74,17 @@ set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
 
 set(DOLPHIN_DEFAULT_UPDATE_TRACK "" CACHE STRING "Name of the default update track. If empty, disables auto-update.")
 
-if(UNIX AND NOT APPLE AND NOT ANDROID)
+# Enable X11 if we're building for Linux/*BSD/etc, not Darwin/Android though
+if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
   option(ENABLE_X11 "Enables X11 Support" ON)
 endif()
 if(NOT WIN32 AND NOT APPLE AND NOT HAIKU)
   option(ENABLE_EGL "Enables EGL OpenGL Interface" ON)
 endif()
 
-if(NOT ANDROID)
+if(NOT ANDROID AND NOT EMSCRIPTEN)
   option(ENABLE_CLI_TOOL "Enable dolphin-tool, a CLI-based utility for functions such as managing disc images" ON)
 endif()
-
 
 set(USE_SYSTEM_LIBS "AUTO" CACHE STRING "Use system libraries instead of bundled libraries.  ON - Always use system and fail if unavailable, OFF - Always use bundled, AUTO - Use system if available, otherwise use bundled.  Default is AUTO")
 if(APPROVED_VENDORED_DEPENDENCIES)
@@ -151,6 +151,40 @@ if(UNIX)
   # Builds a relocatable binary on Linux.
   # The Sys folder will need to be copied to the Binaries folder.
   option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
+endif()
+
+# Not entirely sure if this is how I'm supposed to really do this, but right now these are all *mandatory*
+if(EMSCRIPTEN)
+  message(STATUS "Setting mandatory Emscripten-specific flags")
+
+  # TODO: Implement PPC -> WASM JIT??
+  set(ENABLE_GENERIC ON)
+
+  set(ENABLE_NOGUI ON)
+  set(ENABLE_QT OFF)
+  set(ENABLE_CLI_TOOL OFF)
+
+  set(USE_UPNP OFF)
+  set(ENABLE_ALSA OFF)
+  set(ENABLE_PULSEAUDIO OFF)
+  set(ENABLE_LLVM OFF)
+  set(ENABLE_VULKAN OFF)
+  set(USE_DISCORD_PRESENCE OFF)
+  set(ENABLE_AUTOUPDATE OFF)
+  set(USE_RETRO_ACHIEVEMENTS OFF)
+
+  set(ENABLE_ANALYTICS OFF)
+  set(ENCODE_FRAMEDUMPS OFF) # FFmpeg
+
+  # Enable Emscripten Posix threads API and things for libusb for C/C++
+
+  # WTF? Why doesn't this work?
+  #target_compile_options(dolphin-emu PUBLIC "-pthread")
+  #target_link_options(dolphin-emu PUBLIC "-pthread --bind -s ASYNCIFY -s ALLOW_MEMORY_GROWTH")
+  
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread --bind -s ASYNCIFY -s ALLOW_MEMORY_GROWTH")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH
@@ -706,6 +740,7 @@ if(NOT ANDROID)
   dolphin_find_optional_system_library_pkgconfig(
     LibUSB libusb-1.0 LibUSB::LibUSB Externals/libusb
   )
+
   add_definitions(-D__LIBUSB__)
 endif()
 
@@ -727,7 +762,7 @@ else()
   add_subdirectory(Externals/libiconv-1.14 EXCLUDE_FROM_ALL)
 endif()
 
-if(NOT ANDROID)
+if(NOT ANDROID AND NOT EMSCRIPTEN)
   dolphin_find_optional_system_library(HIDAPI Externals/hidapi)
 endif()
 

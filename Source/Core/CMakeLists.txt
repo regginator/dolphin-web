@@ -19,6 +19,11 @@ if(ENABLE_QT)
   add_subdirectory(DolphinQt)
 endif()
 
+# TODO: Implement DolphinWeb
+#if(EMSCRIPTEN)
+#  add_subdirectory(DolphinWeb)
+#endif()
+
 if (APPLE OR WIN32)
   add_subdirectory(UpdaterCommon)
 endif()
