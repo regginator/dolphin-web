@@ -368,21 +368,6 @@ std::vector<std::string> SplitString(const std::string& str, const char delim)
   return output;
 }
 
-std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter)
-{
-  // Check if we can return early, just for speed
-  if (strings.empty())
-    return "";
-
-  std::ostringstream res;
-  std::copy(strings.begin(), strings.end(),
-            std::ostream_iterator<std::string>(res, delimiter.c_str()));
-
-  // Drop the trailing delimiter.
-  std::string joined = res.str();
-  return joined.substr(0, joined.length() - delimiter.length());
-}
-
 std::string TabsToSpaces(int tab_size, std::string str)
 {
   const std::string spaces(tab_size, ' ');
@@ -681,10 +666,14 @@ void ToUpper(std::string* str)
 
 bool CaseInsensitiveEquals(std::string_view a, std::string_view b)
 {
-  if (a.size() != b.size())
-    return false;
-  return std::equal(a.begin(), a.end(), b.begin(),
-                    [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
+  return std::ranges::equal(
+      a, b, [](char ca, char cb) { return Common::ToLower(ca) == Common::ToLower(cb); });
+}
+
+bool CaseInsensitiveLess::operator()(std::string_view a, std::string_view b) const
+{
+  return std::ranges::lexicographical_compare(
+      a, b, [](char ca, char cb) { return Common::ToLower(ca) < Common::ToLower(cb); });
 }
 
 std::string BytesToHexString(std::span<const u8> bytes)

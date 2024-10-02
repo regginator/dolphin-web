@@ -15,6 +15,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/ranges.h>
+
 #include "Common/Align.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -90,7 +92,7 @@ static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,
   if (!nonexistent.empty())
   {
     PanicAlertFmtT("Files specified in the M3U file \"{0}\" were not found:\n{1}", m3u_path,
-                   JoinStrings(nonexistent, "\n"));
+                   fmt::join(nonexistent, "\n"));
     return {};
   }
 
@@ -569,6 +571,13 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
         // we default to IOS58, which is the version used by the Homebrew Channel.
         SetupWiiMemory(system, IOS::HLE::IOSC::ConsoleType::Retail);
         system.GetIOS()->BootIOS(Titles::IOS(58));
+
+        // The Apploader writes an IOS-like version number into memory.
+        // Older versions of OSInit read it to check IOS compatibility.
+        constexpr u32 ADDR_IOS_VERSION = 0x3140;
+        constexpr u32 ADDR_APPLOADER_VERSION = 0x3188;
+        const u32 ios_version = system.GetMemory().Read_U32(ADDR_IOS_VERSION);
+        system.GetMemory().Write_U32(ios_version, ADDR_APPLOADER_VERSION);
       }
       else
       {
